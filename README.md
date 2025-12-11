@@ -12,7 +12,7 @@ The data shown in this application is currently **simulated** for demonstration 
 - **Forecasting**: `server/services/forecasting.js` uses simple linear regression on this mock history to assign status labels.
 - **Note**: No external public APIs are currently being called.
 
-## 🚀 Future Roadmap: Real-Time Data
+##  Future Roadmap: Real-Time Data
 The architecture is designed to be easily swappable with real data sources. The next phase of development involves:
 1.  **NewsAPI / GDELT**: Fetching real global news metadata.
 2.  **Social Sentiment**: Analyzing Twitter/Reddit streams.
