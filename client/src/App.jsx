@@ -133,8 +133,8 @@ function App() {
               onClick={refreshData}
               disabled={loading}
               className={`ml-4 px-4 py-2 rounded-full text-sm font-medium transition-all ${loading
-                  ? 'bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-600'
-                  : 'bg-black text-white hover:bg-neutral-800 active:scale-95 dark:bg-white dark:text-black dark:hover:bg-neutral-200'
+                ? 'bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-600'
+                : 'bg-black text-white hover:bg-neutral-800 active:scale-95 dark:bg-white dark:text-black dark:hover:bg-neutral-200'
                 }`}
             >
               {loading ? 'Analyzing...' : 'Refresh'}
@@ -158,8 +158,8 @@ function App() {
                   key={tech._id}
                   onClick={() => handleTechClick(tech)}
                   className={`group p-4 rounded-xl cursor-pointer border transition-all duration-200 ${currentTech && currentTech._id === tech._id
-                      ? 'bg-white border-neutral-300 shadow-sm ring-1 ring-black/5 dark:bg-neutral-800 dark:border-neutral-600'
-                      : 'bg-transparent border-transparent hover:bg-white hover:border-neutral-200 dark:hover:bg-neutral-800 dark:hover:border-neutral-700'
+                    ? 'bg-white border-neutral-300 shadow-sm ring-1 ring-black/5 dark:bg-neutral-800 dark:border-neutral-600'
+                    : 'bg-transparent border-transparent hover:bg-white hover:border-neutral-200 dark:hover:bg-neutral-800 dark:hover:border-neutral-700'
                     }`}
                 >
                   <div className="flex items-center justify-between">
@@ -241,7 +241,7 @@ function App() {
             <span className="font-bold text-white text-lg tracking-tight">Flux</span>
           </div>
           <p className="text-sm">
-            © 2025 TechNiche Legal AI. All rights reserved.
+            © 2025 Flux. All rights reserved.
           </p>
           <div className="mt-6 flex justify-center gap-6 text-sm">
             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
