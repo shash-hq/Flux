@@ -121,7 +121,7 @@ function App() {
             <a href="https://github.com/shash-hq" target="_blank" rel="noopener noreferrer" className="text-neutral-500 hover:text-black dark:hover:text-white transition-colors">
               <GithubIcon />
             </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-neutral-500 hover:text-[#0077b5] transition-colors">
+            <a href="https://www.linkedin.com/in/shash-hq/" target="_blank" rel="noopener noreferrer" className="text-neutral-500 hover:text-[#0077b5] transition-colors">
               <LinkedInIcon />
             </a>
 
