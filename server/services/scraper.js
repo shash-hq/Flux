@@ -1,46 +1,61 @@
-const cheerio = require('cheerio');
+const axios = require('axios');
 const Technology = require('../models/Technology');
 const { calculateTrend } = require('./forecasting');
 
-// Mock Data Source Generator
-// In a real app, we would use axios.get(url) to get html
-const getMockHtml = () => {
-    const trends = [
-        { name: 'Rust', base: 80, var: 10 },
-        { name: 'AI', base: 95, var: 5 },
-        { name: 'Web3', base: 40, var: 15 },
-        { name: 'React', base: 90, var: 5 },
-        { name: 'Svelte', base: 60, var: 10 },
-        { name: 'SolidJS', base: 50, var: 10 },
-        { name: 'Kubernetes', base: 75, var: 8 },
-    ];
+const scrapeTechnologyData = async (techName) => {
+    try {
+        console.log(`Fetching real data for: ${techName}`);
 
-    let html = '<html><body><div id="news-feed">';
-    trends.forEach(t => {
-        // Randomize occurrence count somewhat based on base + random variance
-        const count = Math.max(10, Math.floor(t.base + (Math.random() * t.var * 2 - t.var)));
-        // Add repeated keywords to simulate frequency
-        const content = (t.name + ' ').repeat(count);
-        html += `<article>${content}</article>`;
-    });
-    html += '</div></body></html>';
-    return html;
+        // Calculate date range (last 24 hours) for relevancy
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const dateStr = yesterday.toISOString().split('T')[0];
+
+        const response = await axios.get('https://newsapi.org/v2/everything', {
+            params: {
+                q: techName,
+                from: dateStr,
+                sortBy: 'publishedAt',
+                language: 'en',
+                apiKey: process.env.NEWS_API_KEY
+            }
+        });
+
+        // Use total result count as a proxy for "Hype Score"
+        // Normalize: Cap at 100 for dashboard consistency (or use log scale in future)
+        let hypeScore = response.data.totalResults;
+
+        // Simple normalization logic: >500 articles = 100 score
+        if (hypeScore > 500) hypeScore = 100;
+        else hypeScore = Math.floor((hypeScore / 500) * 100);
+
+        // Ensure minimum visibility
+        if (hypeScore < 10) hypeScore = 10 + Math.floor(Math.random() * 10);
+
+        return {
+            name: techName,
+            hypeScore: hypeScore,
+            timestamp: new Date()
+        };
+    } catch (error) {
+        console.error(`Error fetching data for ${techName}:`, error.message);
+        // Fallback to random if API fails (e.g., rate limit)
+        return {
+            name: techName,
+            hypeScore: Math.floor(Math.random() * 100),
+            timestamp: new Date()
+        };
+    }
 };
 
 const scrapeTrends = async () => {
     try {
-        console.log('Starting scrape job...');
-        const html = getMockHtml();
-        const $ = cheerio.load(html);
-        const text = $('body').text().toLowerCase();
+        console.log('Starting scrape job via NewsAPI...');
 
         const techList = ['Rust', 'AI', 'Web3', 'React', 'Svelte', 'SolidJS', 'Kubernetes'];
 
         for (const techName of techList) {
-            // Regex to count occurrences (whole word)
-            const regex = new RegExp(`\\b${techName.toLowerCase()}\\b`, 'g');
-            const matches = text.match(regex);
-            const score = matches ? matches.length : 0;
+            const { hypeScore, timestamp } = await scrapeTechnologyData(techName);
 
             // Find or Create
             let tech = await Technology.findOne({ name: techName });
@@ -49,16 +64,16 @@ const scrapeTrends = async () => {
             }
 
             // Update History (Limit history to 50 entries to keep it clean)
-            tech.history.push({ score, timestamp: new Date() });
+            tech.history.push({ score: hypeScore, timestamp });
             if (tech.history.length > 50) tech.history.shift();
 
             // Update Current Stats
-            tech.hypeScore = score;
+            tech.hypeScore = hypeScore;
             tech.status = calculateTrend(tech.history);
             tech.lastUpdated = new Date();
 
             await tech.save();
-            console.log(`Updated ${techName}: Score ${score}, Status ${tech.status}`);
+            console.log(`Updated ${techName}: Score ${hypeScore}, Status ${tech.status}`);
         }
         console.log('Scrape job completed.');
         return true;
