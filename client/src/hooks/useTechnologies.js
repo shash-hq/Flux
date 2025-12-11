@@ -32,9 +32,20 @@ export const useTechnologies = () => {
         }
     };
 
+    const analyzeTechnology = async (name) => {
+        setLoading(true);
+        try {
+            await axios.post(`${API_Base}/analyze`, { name });
+            await fetchData(); // Refresh entire list to include new item
+        } catch (err) {
+            setError(err.message);
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchData();
     }, [fetchData]);
 
-    return { data, loading, error, refreshData };
+    return { data, loading, error, refreshData, analyzeTechnology };
 };

@@ -83,4 +83,4 @@ const scrapeTrends = async () => {
     }
 };
 
-module.exports = { scrapeTrends };
+module.exports = { scrapeTrends, scrapeTechnologyData };
