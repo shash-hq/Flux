@@ -29,13 +29,13 @@ const analyzeTechnology = async (req, res) => {
         let tech = await Technology.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
 
         if (tech) {
-            // If exists but old (> 24 hours), update it? For MVP, just return it.
-            // Or force refresh it if user specifically asked.
-            // For "Search", let's refresh it to be sure.
-            const { hypeScore, timestamp } = await scrapeTechnologyData(tech.name);
+            // Update existing with new analysis
+            const { hypeScore, sentiment, news, timestamp } = await scrapeTechnologyData(tech.name);
             tech.history.push({ score: hypeScore, timestamp });
             if (tech.history.length > 50) tech.history.shift();
             tech.hypeScore = hypeScore;
+            tech.sentiment = sentiment;
+            tech.news = news;
             // Recalculate trend is complex as it requires history import. 
             // We can just rely on the existing status for now or import forecast.
             // Simpler: Just save and return.
@@ -45,7 +45,7 @@ const analyzeTechnology = async (req, res) => {
         }
 
         // Create New with Backfilled History (to ensure Chart & Trend works immediately)
-        const { hypeScore, timestamp } = await scrapeTechnologyData(name);
+        const { hypeScore, sentiment, news, timestamp } = await scrapeTechnologyData(name);
 
         const history = [];
         // Generate 6 days of synthetic history based on the real current score
@@ -81,6 +81,8 @@ const analyzeTechnology = async (req, res) => {
         const newTech = new Technology({
             name: name, // Maintain case
             hypeScore: hypeScore,
+            sentiment: sentiment,
+            news: news,
             history: history,
             status: 'Stable', // Default new to Stable instead of Unknown so it looks processed
             lastUpdated: new Date()

@@ -1,6 +1,8 @@
 const axios = require('axios');
 const Technology = require('../models/Technology');
 const { calculateTrend } = require('./forecasting');
+const Sentiment = require('sentiment');
+const sentimentAnalyzer = new Sentiment();
 
 const scrapeTechnologyData = async (techName) => {
     try {
@@ -21,28 +23,58 @@ const scrapeTechnologyData = async (techName) => {
             }
         });
 
-        // Use total result count as a proxy for "Hype Score"
-        // Normalize: Cap at 100 for dashboard consistency (or use log scale in future)
-        let hypeScore = response.data.totalResults;
+        const articles = response.data.articles || [];
 
-        // Simple normalization logic: >500 articles = 100 score
+        // 1. Calculate Hype Score
+        let hypeScore = response.data.totalResults;
+        // Normalize: Cap at 500 articles = 100 score
         if (hypeScore > 500) hypeScore = 100;
         else hypeScore = Math.floor((hypeScore / 500) * 100);
-
-        // Ensure minimum visibility
         if (hypeScore < 10) hypeScore = 10 + Math.floor(Math.random() * 10);
+
+        // 2. Calculate Sentiment
+        let totalSentiment = 0;
+        let count = 0;
+
+        // Analyze first 50 headlines for efficiency
+        articles.slice(0, 50).forEach(article => {
+            const text = `${article.title} ${article.description || ''}`;
+            const result = sentimentAnalyzer.analyze(text);
+            totalSentiment += result.score;
+            count++;
+        });
+
+        const avgSentiment = count > 0 ? (totalSentiment / count) : 0;
+        let sentimentLabel = 'Neutral';
+        if (avgSentiment > 0.5) sentimentLabel = 'Positive';
+        if (avgSentiment < -0.5) sentimentLabel = 'Negative';
+
+        // 3. Extract Top News
+        const topNews = articles.slice(0, 5).map(article => ({
+            title: article.title,
+            url: article.url,
+            source: article.source.name,
+            publishedAt: article.publishedAt
+        }));
 
         return {
             name: techName,
             hypeScore: hypeScore,
+            sentiment: {
+                score: avgSentiment.toFixed(2),
+                label: sentimentLabel
+            },
+            news: topNews,
             timestamp: new Date()
         };
     } catch (error) {
         console.error(`Error fetching data for ${techName}:`, error.message);
-        // Fallback to random if API fails (e.g., rate limit)
+        // Fallback
         return {
             name: techName,
             hypeScore: Math.floor(Math.random() * 100),
+            sentiment: { score: 0, label: 'Unknown' },
+            news: [],
             timestamp: new Date()
         };
     }
@@ -55,7 +87,7 @@ const scrapeTrends = async () => {
         const techList = ['Rust', 'AI', 'Web3', 'React', 'Svelte', 'SolidJS', 'Kubernetes'];
 
         for (const techName of techList) {
-            const { hypeScore, timestamp } = await scrapeTechnologyData(techName);
+            const { hypeScore, sentiment, news, timestamp } = await scrapeTechnologyData(techName);
 
             // Find or Create
             let tech = await Technology.findOne({ name: techName });
@@ -69,6 +101,8 @@ const scrapeTrends = async () => {
 
             // Update Current Stats
             tech.hypeScore = hypeScore;
+            tech.sentiment = sentiment;
+            tech.news = news;
             tech.status = calculateTrend(tech.history);
             tech.lastUpdated = new Date();
 

@@ -20,6 +20,7 @@
     "express": "^5.2.1",
     "mongoose": "^9.0.1",
     "node-cron": "^4.2.1",
+    "sentiment": "^5.0.2",
     "simple-statistics": "^7.8.8"
   },
   "devDependencies": {

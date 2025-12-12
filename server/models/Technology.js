@@ -24,6 +24,16 @@ const TechnologySchema = new mongoose.Schema({
             default: Date.now
         }
     }],
+    sentiment: {
+        score: { type: Number, default: 0 },
+        label: { type: String, default: 'Neutral' } // Positive, Negative, Neutral
+    },
+    news: [{
+        title: String,
+        url: String,
+        source: String,
+        publishedAt: Date
+    }],
     lastUpdated: {
         type: Date,
         default: Date.now

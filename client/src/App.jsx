@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTechnologies } from './hooks/useTechnologies';
 import TechnologyChart from './components/TechnologyChart';
+import ComparisonView from './components/ComparisonView';
 
 // Icons
 const GithubIcon = () => (
@@ -32,6 +33,7 @@ function App() {
   const [selectedTech, setSelectedTech] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isComparisonOpen, setIsComparisonOpen] = useState(false);
 
   // Initialize Dark Mode
   useEffect(() => {
@@ -142,9 +144,16 @@ function App() {
             </button>
 
             <button
+              onClick={() => setIsComparisonOpen(true)}
+              className="ml-4 px-4 py-2 rounded-full border border-neutral-200 text-sm font-medium hover:bg-neutral-100 transition-colors dark:border-neutral-700 dark:hover:bg-neutral-800"
+            >
+              Compare ⚔️
+            </button>
+
+            <button
               onClick={refreshData}
               disabled={loading}
-              className={`ml-4 px-4 py-2 rounded-full text-sm font-medium transition-all ${loading
+              className={`ml-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${loading
                 ? 'bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-600'
                 : 'bg-black text-white hover:bg-neutral-800 active:scale-95 dark:bg-white dark:text-black dark:hover:bg-neutral-200'
                 }`}
@@ -154,6 +163,14 @@ function App() {
           </div>
         </div>
       </header>
+
+      {isComparisonOpen && (
+        <ComparisonView
+          technologies={data}
+          onClose={() => setIsComparisonOpen(false)}
+          analyzeTechnology={analyzeTechnology}
+        />
+      )}
 
       <main className="max-w-7xl mx-auto px-6 py-8 flex-grow w-full">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 h-full">
@@ -219,15 +236,14 @@ function App() {
                   </div>
                 </div>
 
-                {/* Chart Area */}
                 <div className="flex-grow bg-neutral-50 rounded-2xl p-6 border border-neutral-100 min-h-[400px] dark:bg-neutral-900 dark:border-neutral-700">
                   <TechnologyChart data={currentTech} color={isDarkMode ? '#fff' : '#000'} />
                 </div>
 
-                <div className="mt-8 grid grid-cols-3 gap-4">
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="p-4 bg-neutral-50 rounded-xl dark:bg-neutral-900 border border-transparent dark:border-neutral-700">
                     <div className="text-xs text-neutral-400 uppercase">Data Points</div>
-                    <div className="text-xl font-semibold mt-1">{currentTech.history.length}</div >
+                    <div className="text-xl font-semibold mt-1">{currentTech.history.length}</div>
                   </div>
                   <div className="p-4 bg-neutral-50 rounded-xl dark:bg-neutral-900 border border-transparent dark:border-neutral-700">
                     <div className="text-xs text-neutral-400 uppercase">Last Update</div>
@@ -235,7 +251,34 @@ function App() {
                       {new Date(currentTech.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
+                  <div className="p-4 bg-neutral-50 rounded-xl dark:bg-neutral-900 border border-transparent dark:border-neutral-700">
+                    <div className="text-xs text-neutral-400 uppercase">Market Sentiment</div>
+                    <div className={`text-xl font-semibold mt-1 ${currentTech.sentiment?.label === 'Positive' ? 'text-green-500' :
+                      currentTech.sentiment?.label === 'Negative' ? 'text-red-500' : 'text-neutral-500'
+                      }`}>
+                      {currentTech.sentiment?.label || 'Neutral'}
+                    </div>
+                  </div>
                 </div>
+
+                {/* Latest News Feed */}
+                {currentTech.news && currentTech.news.length > 0 && (
+                  <div className="mt-8">
+                    <h3 className="text-lg font-bold mb-4">Latest News</h3>
+                    <div className="space-y-3">
+                      {currentTech.news.map((article, idx) => (
+                        <a key={idx} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-4 bg-neutral-50 rounded-xl border border-transparent hover:border-neutral-200 transition-all dark:bg-neutral-900 dark:hover:border-neutral-700 group">
+                          <h4 className="font-medium text-base group-hover:text-blue-600 transition-colors dark:text-neutral-200 dark:group-hover:text-blue-400 line-clamp-1">{article.title}</h4>
+                          <div className="flex items-center gap-2 mt-2 text-xs text-neutral-400">
+                            <span className="font-semibold text-neutral-500 dark:text-neutral-500">{article.source}</span>
+                            <span>•</span>
+                            <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="h-full flex items-center justify-center text-neutral-400">
