@@ -34,6 +34,10 @@ const TechnologySchema = new mongoose.Schema({
         source: String,
         publishedAt: Date
     }],
+    keywords: [{
+        text: String,
+        value: Number
+    }],
     lastUpdated: {
         type: Date,
         default: Date.now

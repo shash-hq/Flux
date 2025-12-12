@@ -57,6 +57,24 @@ const scrapeTechnologyData = async (techName) => {
             publishedAt: article.publishedAt
         }));
 
+        // 4. Extract Keywords (Word Cloud)
+        const allText = articles.map(a => `${a.title} ${a.description || ''}`).join(' ').toLowerCase();
+        const words = allText.match(/\b\w+\b/g) || [];
+        const stopwords = new Set(['the', 'and', 'to', 'of', 'a', 'in', 'for', 'is', 'on', 'that', 'by', 'this', 'with', 'i', 'you', 'it', 'not', 'or', 'be', 'are', 'from', 'at', 'as', 'your', 'all', 'have', 'new', 'more', 'an', 'was', 'we', 'can', 'us', 'about', 'if', 'my', 'has', 'but', 'our', 'one', 'other', 'do', 'no', 'he', 'she', 'they', 'them', 'its', 'so', 'just', 'now', 'up', 'out', 'like', 'only', 'tech', 'technology', 'news']); // Add common filler words
+
+        const freqMap = {};
+        words.forEach(word => {
+            if (word.length > 3 && !stopwords.has(word) && !word.includes(techName.toLowerCase())) {
+                freqMap[word] = (freqMap[word] || 0) + 1;
+            }
+        });
+
+        // Convert to array and sort
+        const keywords = Object.keys(freqMap)
+            .map(text => ({ text, value: freqMap[text] }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 30); // Top 30
+
         return {
             name: techName,
             hypeScore: hypeScore,
@@ -65,6 +83,7 @@ const scrapeTechnologyData = async (techName) => {
                 label: sentimentLabel
             },
             news: topNews,
+            keywords: keywords,
             timestamp: new Date()
         };
     } catch (error) {
@@ -87,7 +106,7 @@ const scrapeTrends = async () => {
         const techList = ['Rust', 'AI', 'Web3', 'React', 'Svelte', 'SolidJS', 'Kubernetes'];
 
         for (const techName of techList) {
-            const { hypeScore, sentiment, news, timestamp } = await scrapeTechnologyData(techName);
+            const { hypeScore, sentiment, news, keywords, timestamp } = await scrapeTechnologyData(techName);
 
             // Find or Create
             let tech = await Technology.findOne({ name: techName });
@@ -103,6 +122,7 @@ const scrapeTrends = async () => {
             tech.hypeScore = hypeScore;
             tech.sentiment = sentiment;
             tech.news = news;
+            tech.keywords = keywords;
             tech.status = calculateTrend(tech.history);
             tech.lastUpdated = new Date();
 

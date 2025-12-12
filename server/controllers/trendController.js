@@ -30,12 +30,13 @@ const analyzeTechnology = async (req, res) => {
 
         if (tech) {
             // Update existing with new analysis
-            const { hypeScore, sentiment, news, timestamp } = await scrapeTechnologyData(tech.name);
+            const { hypeScore, sentiment, news, keywords, timestamp } = await scrapeTechnologyData(tech.name);
             tech.history.push({ score: hypeScore, timestamp });
             if (tech.history.length > 50) tech.history.shift();
             tech.hypeScore = hypeScore;
             tech.sentiment = sentiment;
             tech.news = news;
+            tech.keywords = keywords;
             // Recalculate trend is complex as it requires history import. 
             // We can just rely on the existing status for now or import forecast.
             // Simpler: Just save and return.
@@ -45,7 +46,7 @@ const analyzeTechnology = async (req, res) => {
         }
 
         // Create New with Backfilled History (to ensure Chart & Trend works immediately)
-        const { hypeScore, sentiment, news, timestamp } = await scrapeTechnologyData(name);
+        const { hypeScore, sentiment, news, keywords, timestamp } = await scrapeTechnologyData(name);
 
         const history = [];
         // Generate 6 days of synthetic history based on the real current score
@@ -83,6 +84,7 @@ const analyzeTechnology = async (req, res) => {
             hypeScore: hypeScore,
             sentiment: sentiment,
             news: news,
+            keywords: keywords,
             history: history,
             status: 'Stable', // Default new to Stable instead of Unknown so it looks processed
             lastUpdated: new Date()

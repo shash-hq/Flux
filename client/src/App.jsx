@@ -309,12 +309,30 @@ function App() {
                   <div className="p-4 bg-neutral-50 rounded-xl dark:bg-neutral-900 border border-transparent dark:border-neutral-700">
                     <div className="text-xs text-neutral-400 uppercase">Market Sentiment</div>
                     <div className={`text-xl font-semibold mt-1 ${currentTech.sentiment?.label === 'Positive' ? 'text-green-500' :
-                      currentTech.sentiment?.label === 'Negative' ? 'text-red-500' : 'text-neutral-500'
+                        currentTech.sentiment?.label === 'Negative' ? 'text-red-500' : 'text-neutral-500'
                       }`}>
                       {currentTech.sentiment?.label || 'Neutral'}
                     </div>
                   </div>
                 </div>
+
+                {/* Keyword Cloud */}
+                {currentTech.keywords && currentTech.keywords.length > 0 && (
+                  <div className="mt-8 mb-2">
+                    <h3 className="text-sm font-semibold text-neutral-400 uppercase tracking-widest mb-3">Trending Keywords</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {currentTech.keywords.slice(0, 15).map((kw, idx) => (
+                        <span
+                          key={idx}
+                          className="px-3 py-1 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 text-sm font-medium hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors cursor-default"
+                          style={{ fontSize: Math.max(0.8, Math.min(1.5, 0.8 + (kw.value / 10))) + 'rem' }}
+                        >
+                          {kw.text}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Latest News Feed */}
                 {currentTech.news && currentTech.news.length > 0 && (
