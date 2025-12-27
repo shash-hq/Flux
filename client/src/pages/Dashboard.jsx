@@ -7,8 +7,27 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { toast } from 'sonner';
 
+import { useSocket } from '../context/SocketContext';
+
 export const Dashboard = () => {
     const { data, loading, error, refreshData, analyzeTechnology } = useTechnologies();
+    const { latestTrend } = useSocket();
+
+    // Effect to handle incoming real-time trends
+    useEffect(() => {
+        if (latestTrend) {
+            toast.message('New Intelligence Received', {
+                description: latestTrend.title,
+                action: {
+                    label: 'Analyze',
+                    onClick: () => handleAnalyze(latestTrend.title) // Pre-fill analysis
+                }
+            });
+            // Optionally auto-refresh data or append to list locally
+            refreshData();
+        }
+    }, [latestTrend]);
+
     const [selectedTech, setSelectedTech] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [isComparisonOpen, setIsComparisonOpen] = useState(false);

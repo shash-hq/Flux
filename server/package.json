@@ -13,15 +13,21 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@langchain/core": "^1.1.8",
+    "@langchain/openai": "^1.2.0",
     "axios": "^1.13.2",
+    "bullmq": "^5.66.3",
     "cheerio": "^1.1.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "langchain": "^1.2.3",
     "mongoose": "^9.0.1",
     "node-cron": "^4.2.1",
+    "redis": "^5.10.0",
     "sentiment": "^5.0.2",
-    "simple-statistics": "^7.8.8"
+    "simple-statistics": "^7.8.8",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"

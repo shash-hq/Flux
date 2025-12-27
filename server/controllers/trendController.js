@@ -31,17 +31,28 @@ const analyzeTechnology = async (req, res) => {
         if (tech) {
             // Update existing with new analysis
             const { hypeScore, sentiment, news, keywords, timestamp } = await scrapeTechnologyData(tech.name);
-            tech.history.push({ score: hypeScore, timestamp });
-            if (tech.history.length > 50) tech.history.shift();
-            tech.hypeScore = hypeScore;
-            tech.sentiment = sentiment;
-            tech.news = news;
-            tech.keywords = keywords;
-            // Recalculate trend is complex as it requires history import. 
-            // We can just rely on the existing status for now or import forecast.
-            // Simpler: Just save and return.
-            tech.lastUpdated = new Date();
-            await tech.save();
+
+            // Use atomic update to prevent VersionError (Race Condition with Scraper)
+            tech = await Technology.findOneAndUpdate(
+                { _id: tech._id },
+                {
+                    $push: {
+                        history: {
+                            $each: [{ score: hypeScore, timestamp }],
+                            $slice: -50 // Keep last 50
+                        }
+                    },
+                    $set: {
+                        hypeScore,
+                        sentiment,
+                        news,
+                        keywords,
+                        lastUpdated: new Date()
+                    }
+                },
+                { new: true }
+            );
+
             return res.json(tech);
         }
 

@@ -6,7 +6,11 @@ const cron = require('node-cron');
 const apiRoutes = require('./routes/api');
 const { scrapeTrends } = require('./services/scraper');
 
+const http = require('http');
+const { initSocket } = require('./services/socket');
+
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 5001;
 
 // Middleware
@@ -36,7 +40,14 @@ cron.schedule('0 * * * *', () => {
   scrapeTrends();
 });
 
+const { startIngestionWorker } = require('./workers/ingestion');
+const { startProcessor } = require('./workers/processor');
+
 // Start Server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+initSocket(server).then(() => {
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    startIngestionWorker();
+    startProcessor();
+  });
 });
