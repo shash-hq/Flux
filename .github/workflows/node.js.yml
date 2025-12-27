@@ -26,6 +26,29 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+        cache-dependency-path: '**/package-lock.json'
+    
+    - name: Install Server Dependencies
+      run: |
+        cd server
+        npm ci
+
+    - name: Install Client Dependencies
+      run: |
+        cd client
+        npm ci
+
+    - name: Build Client
+      run: |
+        cd client
+        npm run build --if-present
+
+    - name: Test Server (if applicable)
+      run: |
+        cd server
+        npm test --if-present
+
+    - name: Test Client (if applicable)
+      run: |
+        cd client
+        npm test --if-present
